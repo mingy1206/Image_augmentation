@@ -5,10 +5,10 @@ import cv2
 from PIL import Image, ImageEnhance, ImageChops
 import albumentations as A
 import matplotlib.pyplot as plt
-# 데이터 증강을 적용할 최상위 폴더
+# Image augmentation을 적용할 상위 폴더
 input_root_folder_path = 'data/'
 
-# 증강된 이미지를 저장할 최상위 폴더
+# augmentation한 Image를 저장할 최상위 폴더
 output_folder_path = 'result'
 
 # 데이터 증강 확률

@@ -9,7 +9,7 @@ resize (620x620)
 
 채도(0.6~1.4)(너무 높게 잡으면 색 차이가 크게 안남)
 
-색상(+-90(opencv BRG기준))
+색상(+-90 (opencv BRG기준))
 
 전단변화(검은 여백 존재)
 
@@ -17,7 +17,7 @@ resize (620x620)
 
 filtering(가우시안 노이즈)
 
-<h3> 라즈베리파이 카메라모듈 3 와이드를 사용하여 촬영한 Image를 augmentation한 결과</h3>
+<h3> 라즈베리파이 카메라모듈 3 와이드를 사용하여 촬영한 Image를 Augmentation</h3>
 
 Before Image
 
