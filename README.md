@@ -1,7 +1,9 @@
 # augmentation
 opencv를 사용하여
 
-resize 620x620, 좌우 반전(random.random() < 0.5)
+resize (620x620)
+
+좌우 반전(random.random() < 0.5)
 
 밝기(0.7~1.5)(이 범위를 넘으면 labelling이 눈으로 인식하기 힘든 sample들이 많아져서 해당범위로 지정)
 
