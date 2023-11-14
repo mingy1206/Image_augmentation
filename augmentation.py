@@ -95,7 +95,8 @@ for folder in os.listdir(input_root_folder_path):
                 noisy_array = image + gauss
                 image = Image.fromarray(np.uint8(noisy_array)).convert('RGB')
 
-                # resize 및 저장
+                # 이미지 변환후 크기가 달라짐
+                # 다시 resize
                 image = image.resize((620, 620))
                 output_file_name = f"{file_number}.jpg"
                 image.save(os.path.join(output_folder_path, output_file_name))

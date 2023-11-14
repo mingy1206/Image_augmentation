@@ -17,6 +17,18 @@ resize (620x620)
 
 filtering(가우시안 노이즈)
 
+
+
+<h3> 라즈베리파이 카메라모듈 3 와이드를 사용하여 촬영한 Image를 augmentation한 결과</h3>
+
+Before Image
+<img src = "sample/before.jpg"> 
+
+After Image
+<img src = "sample/after.jpg">
+
+
+
 # file_divide
 팀원의 labelling 할당을 위해서 생성한 파일을 원하는 수(폴더의 수)만큼 분리함 
 
