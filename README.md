@@ -1,4 +1,4 @@
-# augmentation
+# Image_augmentation
 opencv를 사용하여
 
 resize (620x620)
@@ -29,7 +29,7 @@ After Image
 
 <br/>
 <br/>
-# file_divide
+<h2> file_divide</h2>
 
 팀원의 labelling 할당을 위해서 생성한 파일을 원하는 수(폴더의 수)만큼 분리함 
 
