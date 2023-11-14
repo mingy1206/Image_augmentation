@@ -27,14 +27,13 @@ def add_shear(image, intensity):
     return image.transform((new_width, height), Image.AFFINE, shear, Image.BICUBIC)
 
 
-def random_hue_change(image, hue_range=8):
+def random_hue_change(image, hue_range=90):
     # OpenCV를 사용하여 PIL 이미지를 NumPy 배열로 변환 (RGB to BGR)
     img = np.array(image)[:, :, ::-1]
 
     # RGB 이미지를 HSV 이미지로 변환
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    # Hue 채널을 랜덤하게 변경 (더 작은 범위)
+      # Hue 채널을 랜덤하게 변경 (더 작은 범위)
     hue_delta = random.randint(-hue_range, hue_range)
     hsv_img[:, :, 0] = (hsv_img[:, :, 0] + hue_delta) % 180
 
@@ -72,17 +71,21 @@ for folder in os.listdir(input_root_folder_path):
                 if random.random() < invert_probability:
                     image = image.transpose(Image.FLIP_LEFT_RIGHT)
 
+                # 이미지 상하 반전
+                if random.random() < invert_probability:
+                    image = image.transpose(Image.FLIP_TOP_BOTTOM)
+
                 # 밝기, 채도, 색상 등의 증강 작업은 여기에 추가
                 enhancer = ImageEnhance.Brightness(image)
-                image = enhancer.enhance(random.uniform(0.7, 1.5))
+                image = enhancer.enhance(random.uniform(0.6, 1.4))
 
                 change_color = ImageEnhance.Color(image)
-                image = change_color.enhance(random.uniform(0.5, 2.0))
+                image = change_color.enhance(random.uniform(0.6, 1.4))
 
                 image = random_hue_change(image)
 
                 # 이미지 기울이기, 전단, 노이즈 추가
-                image = image.rotate(random.randrange(-10, 10))
+                image = image.rotate(random.randrange(-15, 15))
                 image = add_shear(image, 0.1)
 
                 image = np.array(image)  # PIL 이미지를 NumPy 배열로 변환
