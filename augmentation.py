@@ -1,119 +1,94 @@
+import os
 import random
 import numpy as np
-import os
 import cv2
-from PIL import Image, ImageEnhance, ImageChops
-import albumentations as A
-import matplotlib.pyplot as plt
-# Image augmentation을 적용할 상위 폴더
-input_root_folder_path = 'data/'
-
-# augmentation한 Image를 저장할 최상위 폴더
-output_folder_path = 'result'
-
-# 데이터 증강 확률
-invert_probability = 0.5
-#file name 1부터 시작
-file_number = 1
+from PIL import Image, ImageEnhance
+from keras.preprocessing.image import ImageDataGenerator, img_to_array
 
 
-def add_shear(image, intensity):
-    width, height = image.size
-    # 수평 전단 변환 매트릭스 생성
-    m = random.uniform(-intensity, intensity)
-    xshift = abs(m) * width
-    new_width = width + int(round(xshift))
-    shear = (1, m, -xshift if m > 0 else 0, 0, 1, 0)
-    return image.transform((new_width, height), Image.AFFINE, shear, Image.BICUBIC)
-
-
-def random_hue_change(image, hue_range=90):
-    # OpenCV를 사용하여 PIL 이미지를 NumPy 배열로 변환 (RGB to BGR)
+def random_hue_change(image, hue_range=30):
     img = np.array(image)[:, :, ::-1]
-
-    # RGB 이미지를 HSV 이미지로 변환
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-      # Hue 채널을 랜덤하게 변경 (더 작은 범위)
     hue_delta = random.randint(-hue_range, hue_range)
     hsv_img[:, :, 0] = (hsv_img[:, :, 0] + hue_delta) % 180
-
-    # HSV 이미지를 다시 RGB 이미지로 변환
     new_img = cv2.cvtColor(hsv_img, cv2.COLOR_HSV2BGR)[:, :, ::-1]
-
-    # NumPy 배열을 PIL 이미지로 변환
     return Image.fromarray(new_img)
 
+def add_gaussian_noise(image):
+    row, col, ch = image.shape
+    mean = 0
+    sigma = 25
+    gauss = np.random.normal(mean, sigma, (row, col, ch))
+    gauss = gauss.reshape(row, col, ch)
+    noisy_image = image + gauss
+    noisy_image = np.clip(noisy_image, 0, 255)  # To ensure we have valid pixel values
+    return noisy_image
+
+# ImageDataGenerator Configuration
+datagen = ImageDataGenerator(
+    rotation_range=5,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    shear_range=40.0,
+    zoom_range=0.1,
+    fill_mode='nearest')
+
+# Paths and Constants
+input_root_folder_path = 'data/'    #The folder you want to open
+output_folder_path = 'result'       #The folder you want to save result
+invert_probability = 0.5
+file_number = 1                     #Start name number
+# Create output folder if it doesn't exist
+if not os.path.exists(output_folder_path):
+    os.makedirs(output_folder_path)
+
+# Process each image
 for folder in os.listdir(input_root_folder_path):
     input_folder_path = os.path.join(input_root_folder_path, folder)
-# 출력 폴더 생성 (존재하지 않을 경우)
-    if not os.path.exists(output_folder_path):
-        os.makedirs(output_folder_path)
-
-
-
-    # 폴더의 모든 이미지 파일에 대해 반복
     for file_name in os.listdir(input_folder_path):
         if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
             image_path = os.path.join(input_folder_path, file_name)
-            image = Image.open(image_path)
+            original_image = Image.open(image_path).resize((620, 620))
 
-            # resize
-            image = image.resize((620, 620))
+            # Save original image
+            original_image.save(os.path.join(output_folder_path, f"{file_number}.jpg"))
+            file_number += 1
 
-            # 원본 이미지 저장
-            output_file_name = f"{file_number}.jpg"
-            image.save(os.path.join(output_folder_path, output_file_name))
-            file_number += 1  # 파일 번호 증가
-            for augmentation_index in range(1, 4):  # 세 번의 데이터 증강을 위한 루프
-                image = image.copy()
-
-                # 이미지 좌우 반전
+            # Perform augmentation 3 times for each image
+            #invert_probability is 0.5
+            for _ in range(3):
+                aug_image = original_image.copy()
                 if random.random() < invert_probability:
-                    image = image.transpose(Image.FLIP_LEFT_RIGHT)
-
-                # 이미지 상하 반전
+                    aug_image = aug_image.transpose(Image.FLIP_LEFT_RIGHT)
                 if random.random() < invert_probability:
-                    image = image.transpose(Image.FLIP_TOP_BOTTOM)
+                    aug_image = aug_image.transpose(Image.FLIP_TOP_BOTTOM)
 
-                # 밝기, 채도, 색상 등의 증강 작업은 여기에 추가
-                enhancer = ImageEnhance.Brightness(image)
-                image = enhancer.enhance(random.uniform(0.6, 1.4))
+                # In the main augmentation loop
+                aug_image = random_hue_change(aug_image)
+                aug_image = ImageEnhance.Brightness(aug_image).enhance(random.uniform(0.8, 1.2))  # Moderate brightness change
+                aug_image = ImageEnhance.Color(aug_image).enhance(random.uniform(0.8, 1.2))  # Moderate color enhancement
 
-                change_color = ImageEnhance.Color(image)
-                image = change_color.enhance(random.uniform(0.6, 1.4))
+                # Convert PIL image to numpy array for Keras ImageDataGenerator
+                x = img_to_array(aug_image)
+                x = x.reshape((1,) + x.shape)
 
-                image = random_hue_change(image)
+                # Apply Keras ImageDataGenerator augmentations
+                #
+                for batch in datagen.flow(x, batch_size=1):
+                    # Convert numpy array batch to PIL Image
+                    batch_image = Image.fromarray(batch[0].astype('uint8'), 'RGB')
 
-                # 이미지 기울이기, 전단, 노이즈 추가
-                image = image.rotate(random.randrange(-15, 15))
-                image = add_shear(image, 0.1)
+                    # Convert PIL Image to numpy array for Gaussian noise addition
+                    noisy_image_array = img_to_array(batch_image)
 
-                image = np.array(image)  # PIL 이미지를 NumPy 배열로 변환
-                row, col, ch = image.shape
-                mean = 0
-                var = 0.1
-                sigma = var ** 0.4
-                gauss = np.random.normal(mean, sigma, (row, col, ch))
-                gauss = gauss.reshape(row, col, ch)
-                noisy_array = image + gauss
-                image = Image.fromarray(np.uint8(noisy_array)).convert('RGB')
+                    # Add Gaussian noise
+                    noisy_image_array = add_gaussian_noise(noisy_image_array)
 
-                # 이미지 변환후 크기가 달라짐
-                # 다시 resize
-                image = image.resize((620, 620))
-                output_file_name = f"{file_number}.jpg"
-                image.save(os.path.join(output_folder_path, output_file_name))
+                    # Convert numpy array back to PIL image
+                    final_image = Image.fromarray(np.uint8(noisy_image_array))
 
+                    # Save the final augmented image to file_number
+                    final_image.save(os.path.join(output_folder_path, f"{file_number}.jpg"))
+                    break
+                # file_number++
                 file_number += 1
-
-
-
-
-
-            '''
-            # 좌우 이동
-            width, height = image.size
-            shift = random.randint(0, width * 0.2)
-            image = ImageChops.offset(image, shift, 0)
-            image.paste((0), (0, 0, shift, height))
-            '''
