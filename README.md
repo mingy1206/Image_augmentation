@@ -23,11 +23,11 @@ filtering(가우시안 노이즈) mean =0, sigma =25
 
 Before Image
 
-<img src = "sample/befor.jpg"> 
+<img src = "sample/before_augumentation.jpg"> 
 
 After Image
 
-<img src = "sample/afte.jpg">
+<img src = "sample/after_augumentation.jpg">
 
 <br/>
 <br/>
